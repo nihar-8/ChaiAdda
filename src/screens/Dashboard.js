@@ -16,7 +16,7 @@ export default function Dashboard(props) {
         NetInfo.fetch().then((state) => {
             if (state.isConnected) {
                 var newItems = []
-                database().ref().once('value').then(snapshot => {
+                database().ref('/purchase').once('value').then(snapshot => {
                     snapshot.forEach((item) => {
                         var currentItem = {
                             label: item.key,
@@ -29,8 +29,12 @@ export default function Dashboard(props) {
                         props.navigation.navigate('AddStock', { body: newItems })
                     } else if (page == 'item') {
                         props.navigation.navigate('AddItem', { body: newItems })
-                    } else {
+                    } else if (page == 'checkPurchaseHistory') {
+                        props.navigation.navigate('CheckPurchaseHistory', { body: newItems })
+                    } else if (page == 'checkStock') {
                         props.navigation.navigate('CheckStock', { body: newItems })
+                    }else {
+                        props.navigation.navigate('RemoveStock', { body: newItems })
                     }
                 });
             } else {
@@ -83,12 +87,34 @@ export default function Dashboard(props) {
                 <TouchableOpacity
                     activeOpacity={0.6}
                     style={styles.button}
-                    onPress={() => add('check')}
+                    onPress={() => add('checkPurchaseHistory')}
+                >
+                    <Text
+                        style={styles.buttonText}
+                    >
+                        Check Purchase History
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    activeOpacity={0.6}
+                    style={styles.button}
+                    onPress={() => add('checkStock')}
                 >
                     <Text
                         style={styles.buttonText}
                     >
                         Check Stock
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    activeOpacity={0.6}
+                    style={styles.button}
+                    onPress={() => add('removeStock')}
+                >
+                    <Text
+                        style={styles.buttonText}
+                    >
+                        Remove Stock
                     </Text>
                 </TouchableOpacity>
             </View>

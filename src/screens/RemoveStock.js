@@ -16,18 +16,17 @@ import NetInfo from "@react-native-community/netinfo"
 import database from '@react-native-firebase/database';
 import RNPickerSelect from 'react-native-picker-select'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-export default function AddStock(props) {
+export default function RemoveStock(props) {
     const [selectedItem, setSelectedItem] = React.useState(null)
     const items = props.route.params.body
     const [subItems, setSubItems] = React.useState([])
     const [selectedSubItem, setSelectedSubItem] = React.useState(null)
     const [qty, setQty] = React.useState('')
-    const [price, setPrice] = React.useState('')
+
     const didSelectItem = (item) => {
         if (!!item) {
             setSelectedItem(item)
             setSelectedSubItem(null)
-            setPrice('')
             setQty('')
             NetInfo.fetch().then((state) => {
                 if (state.isConnected) {
@@ -50,35 +49,24 @@ export default function AddStock(props) {
         }
     }
 
-    const getDate = () => {
-        let val = new Date()
-        let myDate = val.toDateString().split(" ")
-        return (`${myDate[2]} ${myDate[1]}, ${myDate[3]}`)
-    }
-
     const didSelectSubItem = (item) => {
         if (!!item) {
             setSelectedSubItem(item)
-            setPrice('')
             setQty('')
         }
     }
 
-    const addStock = () => {
+    const addItem = () => {
         if (selectedItem == null) {
             showErrorAlert('Please select a Category')
         } else if (selectedSubItem == null) {
             showErrorAlert('Please select an Item')
         } else if (qty.trim().length == 0) {
             showErrorAlert('Please enter Quantity.')
-        } else if (price.trim().length == 0) {
-            showErrorAlert('Please enter Price.')
         } else if (qty.split('.').length > 1) {
             showErrorAlert("Quantiy can't be a fraction.")
-        } else if (price.split('.').length > 2) {
-            showErrorAlert("Invalid Price entered")
         } else {
-            Alert.alert("Confirmation", "Category: " + selectedItem + "\nItem: " + selectedSubItem + "\nPrice: " + price + "\nQuantity: " + qty, [
+            Alert.alert("Confirmation", "Category: " + selectedItem + "\nItem: " + selectedSubItem + "\nQuantity: " + qty, [
                 {
                     text: 'Confirm', onPress: () => {
                         updateDatabase()
@@ -93,23 +81,17 @@ export default function AddStock(props) {
         NetInfo.fetch().then((state) => {
             if (state.isConnected) {
                 database().ref(`/stock/${selectedItem}/${selectedSubItem}`).once('value').then(snapshot => {
-                    var inStock = snapshot.val().in
                     var remainingStock = snapshot.val().left
+                    var outStock = snapshot.val().out
                     database().ref(`/stock/${selectedItem}/${selectedSubItem}`).update({
-                        in: inStock + parseInt(qty),
-                        left: remainingStock + parseInt(qty)
+                        out: outStock + parseInt(qty),
+                        left: remainingStock - parseInt(qty)
                     }).then(() => {
-                        database().ref(`/purchase/${selectedItem}/${selectedSubItem}/${getDate()}`).update({
-                            price: parseFloat(price),
-                            qty: parseInt(qty),
-                            total: parseFloat(price) * parseInt(qty)
-                        }).then(() => {
-                            showErrorAlert('Stock Updated')
-                            props.navigation.goBack()
-                        });
+                        showErrorAlert('Stock Updated')
+                        props.navigation.goBack()
                     })
                 });
-            } else {
+            }else {
                 showErrorAlert('Please check your internet connection.')
             }
         });
@@ -183,24 +165,15 @@ export default function AddStock(props) {
                         onSubmitEditing={() => Keyboard.dismiss()}
                         keyboardType={'numeric'}
                     />
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder={'Price Here'}
-                        placeholderTextColor={Colors.Silver}
-                        value={price}
-                        onChangeText={(newPrice) => setPrice(newPrice)}
-                        onSubmitEditing={() => Keyboard.dismiss()}
-                        keyboardType={'decimal-pad'}
-                    />
                     <TouchableOpacity
                         activeOpacity={0.6}
                         style={styles.button}
-                        onPress={() => addStock()}
+                        onPress={() => addItem()}
                     >
                         <Text
                             style={styles.buttonText}
                         >
-                            Add Stock
+                            Remove Stock
                         </Text>
                     </TouchableOpacity>
                 </View>

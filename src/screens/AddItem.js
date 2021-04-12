@@ -57,19 +57,28 @@ export default function AddItem(props) {
         }
     }
 
+    const getDate = () => {
+        let val = new Date()
+        let myDate = val.toDateString().split(" ")
+        return (`${myDate[2]} ${myDate[1]}, ${myDate[3]}`)
+    }
+
     function updateDatabase() {
         NetInfo.fetch().then((state) => {
             if (state.isConnected) {
-                var avPrc = parseFloat(price)
-                var qt = parseInt(qty, 10)
-                var tCost = (qt * avPrc)
-                database().ref(`/${selectedItem}/${itemName}`).update({
-                    avgPrice: avPrc,
-                    qty: qt,
-                    total: tCost
+                database().ref(`/stock/${selectedItem}/${itemName}`).update({
+                    in: parseInt(qty),
+                    out: 0,
+                    left: parseInt(qty)
                 }).then(() => {
-                    showErrorAlert('Item Added')
-                    props.navigation.goBack()
+                    database().ref(`/purchase/${selectedItem}/${itemName}/${getDate()}`).update({
+                        price: parseFloat(price),
+                        qty: parseInt(qty),
+                        total: parseFloat(price) * parseInt(qty)
+                    }).then(() => {
+                        showErrorAlert('Item Added')
+                        props.navigation.goBack()
+                    });
                 });
             }else {
                 showErrorAlert('Please check your internet connection.')

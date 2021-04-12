@@ -14,15 +14,42 @@ import NetInfo from "@react-native-community/netinfo"
 import database from '@react-native-firebase/database';
 import RNPickerSelect from 'react-native-picker-select'
 const { width, height } = Dimensions.get('screen')
-export default function CheckStock(props) {
+export default function CheckPurchaseHistory(props) {
     const [selectedItem, setSelectedItem] = React.useState(null)
     const items = props.route.params.body
+    const [subItems, setSubItems] = React.useState([])
+    const [selectedSubItem, setSelectedSubItem] = React.useState(null)
     const [data, setData] = React.useState([])
 
     const didSelectItem = (item) => {
         if (!!item) {
             setSelectedItem(item)
+            setSelectedSubItem(null)
             setData([])
+            NetInfo.fetch().then((state) => {
+                if (state.isConnected) {
+                    var newItems = []
+                    database().ref('/purchase/' + item).once('value').then(snapshot => {
+                        snapshot.forEach((subItem) => {
+                            var currentItem = {
+                                label: subItem.key,
+                                value: subItem.key
+                            }
+                            newItems.push(currentItem)
+                        })
+                    }).then(() => {
+                        setSubItems(newItems)
+                    });
+                } else {
+                    showErrorAlert('Please check your internet connection.')
+                }
+            });
+        }
+    }
+
+    const didSelectSubItem = (item) => {
+        if (!!item) {
+            setSelectedSubItem(item)
             fetchData(item)
         }
     }
@@ -31,13 +58,13 @@ export default function CheckStock(props) {
         NetInfo.fetch().then((state) => {
             if (state.isConnected) {
                 var subItems = []
-                database().ref(`/stock/${item}`).once('value').then(snapshot => {
+                database().ref(`/purchase/${selectedItem}/${item}`).once('value').then(snapshot => {
                     snapshot.forEach((child) => {
                         var subItem = {
                             title: child.key,
-                            stockIn: child.val().in,
-                            stockOut: child.val().out,
-                            stockLeft: child.val().left
+                            price: child.val().price.toFixed(2),
+                            qty: child.val().qty,
+                            total: child.val().total.toFixed(2)
                         }
                         subItems.push(subItem)
                     })
@@ -87,6 +114,24 @@ export default function CheckStock(props) {
                         useNativeAndroidPickerStyle={false}
                     />
                 </View>
+                <View
+                    style={styles.textInputView}
+                >
+                    <RNPickerSelect
+                        onValueChange={(value) => didSelectSubItem(value)}
+                        items={subItems}
+                        value={selectedSubItem}
+                        style={{
+                            inputIOS: [pickerSelectStyles.inputIOS],
+                            inputAndroid: [pickerSelectStyles.inputAndroid],
+                        }}
+                        placeholder={{
+                            label: 'Select Item',
+                            value: null
+                        }}
+                        useNativeAndroidPickerStyle={false}
+                    />
+                </View>
                 {(data.length > 0) ?
                     (<FlatList
                         data={data}
@@ -99,22 +144,22 @@ export default function CheckStock(props) {
                                 <Text
                                     style={styles.itemText}
                                 >
-                                   Product : {item.title}
+                                   Date : {item.title}
                                 </Text>
                                 <Text
                                    style={styles.itemText}
                                 >
-                                    Stock-In : {item.stockIn}
+                                    Price : {item.price}
                                 </Text>
                                 <Text
                                     style={styles.itemText}
                                 >
-                                    Stock-Out : {item.stockOut}
+                                    Quantity : {item.qty}
                                 </Text>
                                 <Text
                                     style={styles.itemText}
                                 >
-                                    Stock-Left : {item.stockLeft}
+                                    Total : {item.total}
                                 </Text>
                             </View>
                         }
