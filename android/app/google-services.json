@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1066703751039",
+    "project_id": "chaiadda",
+    "storage_bucket": "chaiadda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066703751039:android:d92b091aa467da6e1e7c4a",
+        "android_client_info": {
+          "package_name": "com.chaiadda"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1066703751039-pgdeqqg3hrs6vbn9tt66ik4ed6cvbbit.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-5N0Hlc-C76galVt-ZsibaD7QGDMOGjs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1066703751039-pgdeqqg3hrs6vbn9tt66ik4ed6cvbbit.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
